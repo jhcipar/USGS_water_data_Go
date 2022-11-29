@@ -1,0 +1,5 @@
+# https://raw.githubusercontent.com/apache/airflow/constraints-2.4.3/constraints-3.7.txt
+apache-airflow-client
+apache-airflow-providers-amazon
+boto3
+# pandas

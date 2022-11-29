@@ -8,5 +8,5 @@ variable "aws_region" {
 variable "bucket_prefix" {
   description = "Bucket prefix for our datalake"
   type        = string
-  default     = "test-data-lake-"
+  default     = "stock-data-lake-"
 }
