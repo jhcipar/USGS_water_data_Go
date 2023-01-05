@@ -18,10 +18,12 @@ from airflow.providers.amazon.aws.transfers.local_to_s3 import LocalFilesystemTo
  
 AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-S3_BUCKET_NAME = os.environ.get("AWS_DATALAKE_BUCKET_NAME")
+S3_BUCKET_NAME = os.environ["AWS_DATALAKE_BUCKET_NAME"]
 AWS_BUCKET_REGION = os.environ.get("AWS_BUCKET_REGION")
 
-s3 = boto3.client('s3', 
+
+s3 = boto3.client('s3',
+    region_name=AWS_BUCKET_REGION,
     aws_access_key_id=AWS_ACCESS_KEY, 
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY
     )
@@ -29,12 +31,15 @@ s3 = boto3.client('s3',
 task_logger = logging.getLogger('airflow.task')
 
 
-def extract_raw_json(url, params):
+def extract_raw_json(url, filetype, params):
     response = requests.get(url=url, params=params)
-    parsed = response.json()
-    df = pd.DataFrame(parsed)
-    
-    # df.to_csv(f"/airflow/temp/{params['date']}_reddit_comments.csv")
+    # parsed = response.json()
+    s3.put_object(
+        Body = response.json(),
+        Bucket = S3_BUCKET_NAME,
+        Key = f"raw/{filetype}/{params['date']}.json"
+    )
+
 
 
 default_args = {
@@ -57,6 +62,7 @@ with DAG(
         python_callable=extract_raw_json,
         op_kwargs={
             'url':'https://tradestie.com/api/v1/apps/reddit',
+            'filetype':'reddit_sentiment',
             'params':{
                 'date':'{{ ds }}'
             }
